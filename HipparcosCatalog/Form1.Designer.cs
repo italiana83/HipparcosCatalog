@@ -51,9 +51,9 @@ namespace HipparcosCatalog
             radioButton2 = new RadioButton();
             radioButton1 = new RadioButton();
             expander2 = new Expander();
+            checkBox1 = new CheckBox();
             label1 = new Label();
             trackBar1 = new TrackBar();
-            checkBox1 = new CheckBox();
             checkBox2 = new CheckBox();
             label2 = new Label();
             button1 = new Button();
@@ -313,6 +313,17 @@ namespace HipparcosCatalog
             expander2.TabIndex = 16;
             expander2.Text = "Вращение";
             // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Location = new Point(7, 102);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new Size(139, 24);
+            checkBox1.TabIndex = 3;
+            checkBox1.Text = "Авто вращение";
+            checkBox1.UseVisualStyleBackColor = true;
+            checkBox1.CheckedChanged += checkBox1_CheckedChanged;
+            // 
             // label1
             // 
             label1.AutoSize = true;
@@ -333,17 +344,6 @@ namespace HipparcosCatalog
             trackBar1.TabIndex = 0;
             trackBar1.Value = 1;
             trackBar1.ValueChanged += trackBar1_ValueChanged;
-            // 
-            // checkBox1
-            // 
-            checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(7, 102);
-            checkBox1.Name = "checkBox1";
-            checkBox1.Size = new Size(139, 24);
-            checkBox1.TabIndex = 3;
-            checkBox1.Text = "Авто вращение";
-            checkBox1.UseVisualStyleBackColor = true;
-            checkBox1.CheckedChanged += checkBox1_CheckedChanged;
             // 
             // checkBox2
             // 
