@@ -43,12 +43,13 @@ namespace HipparcosCatalog
             expander4 = new Expander();
             checkedListBox1 = new CheckedListBox();
             expander3 = new Expander();
+            splitContainer1 = new SplitContainer();
+            comboBox2 = new ComboBox();
+            label5 = new Label();
+            numericUpDown2 = new NumericUpDown();
             radioButton3 = new RadioButton();
             radioButton2 = new RadioButton();
             radioButton1 = new RadioButton();
-            comboBox2 = new ComboBox();
-            numericUpDown2 = new NumericUpDown();
-            label5 = new Label();
             expander2 = new Expander();
             label1 = new Label();
             trackBar1 = new TrackBar();
@@ -71,6 +72,10 @@ namespace HipparcosCatalog
             expander5.SuspendLayout();
             expander4.SuspendLayout();
             expander3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).BeginInit();
             expander2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)trackBar1).BeginInit();
@@ -87,7 +92,7 @@ namespace HipparcosCatalog
             expander1.Controls.Add(label4);
             expander1.Dock = DockStyle.Top;
             expander1.ExpandedHeight = 159;
-            expander1.Location = new Point(0, 30);
+            expander1.Location = new Point(0, 62);
             expander1.Name = "expander1";
             expander1.Size = new Size(255, 159);
             expander1.TabIndex = 15;
@@ -96,7 +101,7 @@ namespace HipparcosCatalog
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(15, 37);
+            label3.Location = new Point(0, 37);
             label3.Name = "label3";
             label3.Size = new Size(134, 20);
             label3.TabIndex = 8;
@@ -105,18 +110,18 @@ namespace HipparcosCatalog
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(15, 60);
+            comboBox1.Location = new Point(7, 60);
             comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(223, 28);
+            comboBox1.Size = new Size(238, 28);
             comboBox1.TabIndex = 5;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
             // numericUpDown1
             // 
-            numericUpDown1.Location = new Point(15, 114);
+            numericUpDown1.Location = new Point(6, 114);
             numericUpDown1.Maximum = new decimal(new int[] { 100000000, 0, 0, 0 });
             numericUpDown1.Name = "numericUpDown1";
-            numericUpDown1.Size = new Size(223, 27);
+            numericUpDown1.Size = new Size(239, 27);
             numericUpDown1.TabIndex = 10;
             numericUpDown1.Value = new decimal(new int[] { 100000000, 0, 0, 0 });
             numericUpDown1.ValueChanged += numericUpDown1_ValueChanged;
@@ -124,7 +129,7 @@ namespace HipparcosCatalog
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(15, 91);
+            label4.Location = new Point(3, 91);
             label4.Name = "label4";
             label4.Size = new Size(232, 20);
             label4.TabIndex = 9;
@@ -151,7 +156,7 @@ namespace HipparcosCatalog
             expander5.Controls.Add(richTextBox1);
             expander5.Dock = DockStyle.Top;
             expander5.ExpandedHeight = 159;
-            expander5.Location = new Point(0, 432);
+            expander5.Location = new Point(0, 441);
             expander5.Name = "expander5";
             expander5.Size = new Size(255, 159);
             expander5.TabIndex = 18;
@@ -172,7 +177,7 @@ namespace HipparcosCatalog
             expander4.Dock = DockStyle.Top;
             expander4.Expanded = false;
             expander4.ExpandedHeight = 159;
-            expander4.Location = new Point(0, 402);
+            expander4.Location = new Point(0, 411);
             expander4.Name = "expander4";
             expander4.Size = new Size(255, 30);
             expander4.TabIndex = 17;
@@ -191,27 +196,77 @@ namespace HipparcosCatalog
             // 
             // expander3
             // 
+            expander3.Controls.Add(splitContainer1);
             expander3.Controls.Add(radioButton3);
             expander3.Controls.Add(radioButton2);
             expander3.Controls.Add(radioButton1);
-            expander3.Controls.Add(comboBox2);
-            expander3.Controls.Add(numericUpDown2);
-            expander3.Controls.Add(label5);
             expander3.Dock = DockStyle.Top;
             expander3.Expanded = false;
-            expander3.ExpandedHeight = 226;
-            expander3.Location = new Point(0, 372);
+            expander3.ExpandedHeight = 190;
+            expander3.Location = new Point(0, 381);
             expander3.Name = "expander3";
             expander3.Size = new Size(255, 30);
             expander3.TabIndex = 16;
             expander3.Text = "Подписи";
             // 
+            // splitContainer1
+            // 
+            splitContainer1.Dock = DockStyle.Top;
+            splitContainer1.Location = new Point(3, 99);
+            splitContainer1.Name = "splitContainer1";
+            splitContainer1.Orientation = Orientation.Horizontal;
+            // 
+            // splitContainer1.Panel1
+            // 
+            splitContainer1.Panel1.Controls.Add(comboBox2);
+            // 
+            // splitContainer1.Panel2
+            // 
+            splitContainer1.Panel2.Controls.Add(label5);
+            splitContainer1.Panel2.Controls.Add(numericUpDown2);
+            splitContainer1.Size = new Size(249, 109);
+            splitContainer1.SplitterDistance = 28;
+            splitContainer1.TabIndex = 16;
+            // 
+            // comboBox2
+            // 
+            comboBox2.Dock = DockStyle.Top;
+            comboBox2.Enabled = false;
+            comboBox2.FormattingEnabled = true;
+            comboBox2.Location = new Point(0, 0);
+            comboBox2.Name = "comboBox2";
+            comboBox2.Size = new Size(249, 28);
+            comboBox2.TabIndex = 15;
+            comboBox2.SelectedIndexChanged += comboBox2_SelectedIndexChanged;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Dock = DockStyle.Top;
+            label5.Location = new Point(0, 0);
+            label5.Name = "label5";
+            label5.Size = new Size(244, 20);
+            label5.TabIndex = 11;
+            label5.Text = "Дистанция видимости подписей):";
+            // 
+            // numericUpDown2
+            // 
+            numericUpDown2.Enabled = false;
+            numericUpDown2.Location = new Point(3, 23);
+            numericUpDown2.Maximum = new decimal(new int[] { 100000000, 0, 0, 0 });
+            numericUpDown2.Name = "numericUpDown2";
+            numericUpDown2.Size = new Size(239, 27);
+            numericUpDown2.TabIndex = 11;
+            numericUpDown2.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            numericUpDown2.ValueChanged += numericUpDown2_ValueChanged;
+            // 
             // radioButton3
             // 
             radioButton3.AutoSize = true;
-            radioButton3.Location = new Point(9, 90);
+            radioButton3.Dock = DockStyle.Top;
+            radioButton3.Location = new Point(3, 75);
             radioButton3.Name = "radioButton3";
-            radioButton3.Size = new Size(156, 24);
+            radioButton3.Size = new Size(249, 24);
             radioButton3.TabIndex = 14;
             radioButton3.Text = "Звезды созвездий";
             radioButton3.UseVisualStyleBackColor = true;
@@ -220,9 +275,10 @@ namespace HipparcosCatalog
             // radioButton2
             // 
             radioButton2.AutoSize = true;
-            radioButton2.Location = new Point(9, 60);
+            radioButton2.Dock = DockStyle.Top;
+            radioButton2.Location = new Point(3, 51);
             radioButton2.Name = "radioButton2";
-            radioButton2.Size = new Size(180, 24);
+            radioButton2.Size = new Size(249, 24);
             radioButton2.TabIndex = 13;
             radioButton2.Text = "Звезды по дистанции";
             radioButton2.UseVisualStyleBackColor = true;
@@ -232,57 +288,28 @@ namespace HipparcosCatalog
             // 
             radioButton1.AutoSize = true;
             radioButton1.Checked = true;
-            radioButton1.Location = new Point(9, 30);
+            radioButton1.Dock = DockStyle.Top;
+            radioButton1.Location = new Point(3, 27);
             radioButton1.Name = "radioButton1";
-            radioButton1.Size = new Size(126, 24);
+            radioButton1.Size = new Size(249, 24);
             radioButton1.TabIndex = 12;
             radioButton1.TabStop = true;
             radioButton1.Text = "Без подписей";
             radioButton1.UseVisualStyleBackColor = true;
             radioButton1.CheckedChanged += radioButton1_CheckedChanged;
             // 
-            // comboBox2
-            // 
-            comboBox2.Enabled = false;
-            comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(7, 127);
-            comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(237, 28);
-            comboBox2.TabIndex = 11;
-            comboBox2.SelectedIndexChanged += comboBox2_SelectedIndexChanged;
-            // 
-            // numericUpDown2
-            // 
-            numericUpDown2.Enabled = false;
-            numericUpDown2.Location = new Point(5, 181);
-            numericUpDown2.Maximum = new decimal(new int[] { 100000000, 0, 0, 0 });
-            numericUpDown2.Name = "numericUpDown2";
-            numericUpDown2.Size = new Size(239, 27);
-            numericUpDown2.TabIndex = 11;
-            numericUpDown2.Value = new decimal(new int[] { 10, 0, 0, 0 });
-            numericUpDown2.ValueChanged += numericUpDown2_ValueChanged;
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Location = new Point(2, 158);
-            label5.Name = "label5";
-            label5.Size = new Size(244, 20);
-            label5.TabIndex = 11;
-            label5.Text = "Дистанция видимости подписей):";
-            // 
             // expander2
             // 
+            expander2.Controls.Add(checkBox1);
             expander2.Controls.Add(label1);
             expander2.Controls.Add(trackBar1);
-            expander2.Controls.Add(checkBox1);
             expander2.Controls.Add(checkBox2);
             expander2.Controls.Add(label2);
             expander2.Dock = DockStyle.Top;
-            expander2.ExpandedHeight = 183;
-            expander2.Location = new Point(0, 189);
+            expander2.ExpandedHeight = 160;
+            expander2.Location = new Point(0, 221);
             expander2.Name = "expander2";
-            expander2.Size = new Size(255, 183);
+            expander2.Size = new Size(255, 160);
             expander2.TabIndex = 16;
             expander2.Text = "Вращение";
             // 
@@ -310,7 +337,7 @@ namespace HipparcosCatalog
             // checkBox1
             // 
             checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(7, 121);
+            checkBox1.Location = new Point(7, 102);
             checkBox1.Name = "checkBox1";
             checkBox1.Size = new Size(139, 24);
             checkBox1.TabIndex = 3;
@@ -321,7 +348,7 @@ namespace HipparcosCatalog
             // checkBox2
             // 
             checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(7, 152);
+            checkBox2.Location = new Point(6, 132);
             checkBox2.Name = "checkBox2";
             checkBox2.Size = new Size(218, 24);
             checkBox2.TabIndex = 4;
@@ -352,11 +379,10 @@ namespace HipparcosCatalog
             // 
             expander6.Controls.Add(checkBox3);
             expander6.Dock = DockStyle.Top;
-            expander6.Expanded = false;
-            expander6.ExpandedHeight = 93;
+            expander6.ExpandedHeight = 62;
             expander6.Location = new Point(0, 0);
             expander6.Name = "expander6";
-            expander6.Size = new Size(255, 30);
+            expander6.Size = new Size(255, 62);
             expander6.TabIndex = 19;
             expander6.Text = "Общие";
             // 
@@ -365,9 +391,10 @@ namespace HipparcosCatalog
             checkBox3.AutoSize = true;
             checkBox3.Checked = true;
             checkBox3.CheckState = CheckState.Checked;
-            checkBox3.Location = new Point(12, 30);
+            checkBox3.Dock = DockStyle.Top;
+            checkBox3.Location = new Point(3, 27);
             checkBox3.Name = "checkBox3";
-            checkBox3.Size = new Size(145, 24);
+            checkBox3.Size = new Size(249, 24);
             checkBox3.TabIndex = 5;
             checkBox3.Text = "Отображать оси";
             checkBox3.UseVisualStyleBackColor = true;
@@ -453,6 +480,11 @@ namespace HipparcosCatalog
             expander4.ResumeLayout(false);
             expander3.ResumeLayout(false);
             expander3.PerformLayout();
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            splitContainer1.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)numericUpDown2).EndInit();
             expander2.ResumeLayout(false);
             expander2.PerformLayout();
@@ -499,5 +531,6 @@ namespace HipparcosCatalog
         private Expander expander5;
         private Expander expander6;
         private CheckBox checkBox3;
+        private SplitContainer splitContainer1;
     }
 }
