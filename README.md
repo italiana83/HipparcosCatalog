@@ -15,11 +15,17 @@ From this data, you can get Cartesian coordinates (X,Y,Z) in the galactic system
 We use the following formulas:
 
 X=d*cos(δ)*cos(α)
+
 Y=d*cos(δ)*sin(α)
+
 Z=d*sin(δ)
+
 Where:
+
 d — distance to the object in parsecs
+
 α and δ — right ascension and declination in radians.
+
 -------------------------------------------------------------------------------------------------------------
 Просто мое хобби))
 Визуализация звездного каталога Hipparcos.
