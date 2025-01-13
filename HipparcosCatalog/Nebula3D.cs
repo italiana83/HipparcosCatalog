@@ -14,14 +14,22 @@ namespace HipparcosCatalog
         private int _vbo;
         private int _ebo;
         private Shader _shader;
+        int texture3D;
+        int _indexCount;
 
         public Nebula3D()
         {
             InitializeShader();
+            InitializeBuffers();
+            texture3D = Create3DTexture(64); // 64x64x64 текстура шума
         }
 
-        Vector3 baseColor = new Vector3(1.1f, 1.0f, 1.0f); // Темно-синий
-        Vector3 highlightColor = new Vector3(1.0f, 0.4f, 0.0f); // Оранжевый
+        private float _edgeSharpness = 10.0f; // Резкость краев туманности (чем больше, тем четче края)
+        private float _opacity = 0.3f; // Прозрачность туманности (от 0.0 до 1.0)
+        private int steps = 64;         // Количество шагов трассировки
+        private float densityScale = 0.9f; // Масштаб плотности
+        private Vector3 _position = new Vector3(2.0f, 0.0f, 0.0f);
+        private Vector3 _size = new Vector3(5.0f, 5.0f, 5.0f);
         public void Draw(Matrix4 view, Matrix4 projection, Matrix4 model, Vector3 cameraPosition, TextRenderer textRenderer)
         {
             _shader.Use();
@@ -29,275 +37,219 @@ namespace HipparcosCatalog
             _shader.SetMatrix4("projection", projection);
             _shader.SetMatrix4("model", model);
 
-            float time = (float)GLFW.GetTime();
-            _shader.SetFloat("uTime", time);// Time (for animation)
-            _shader.SetFloat("uNebulaScale", 5.0f);// Nebula size
-            _shader.SetVector3("uCameraPosition", cameraPosition);
-            _shader.SetVector3("uNebulaPosition", new Vector3(1,1,0));
 
-            //baseColor = new Vector3(0.1f + 0.1f * (float)Math.Sin(time), 0.2f, 0.5f); // Анимация цвета
-            _shader.SetVector3("uBaseColor", baseColor);
-            _shader.SetVector3("uHighlightColor", highlightColor);
+            // Передаём цвета
+            _shader.SetVector3("nebulaColor", new Vector3(0.8f, 0.1f, 0.2f));
+            _shader.SetVector3("lightColor", new Vector3(0.1f, 0.1f, 0.8f));
 
+            // Передаём текстуру
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture3D, texture3D);
+            _shader.SetInt("noiseTexture", 0);
+
+            // Передаём положение и размер
+            _shader.SetVector3("position", _position);
+            _shader.SetVector3("size", _size);
+
+            // Передача прозрачности
+            _shader.SetFloat("opacity", _opacity);
+
+            _shader.SetFloat("edgeSharpness", _edgeSharpness);
+
+            // Рендерим куб
             GL.BindVertexArray(_vao);
-            GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedInt, 0);
+
+            GL.BindVertexArray(0);
+            GL.UseProgram(0);
 
         }
 
-        //public void InitializeBuffers()
-        //{
-        //    _vao = GL.GenVertexArray();
-        //    GL.BindVertexArray(_vao);
-
-        //    float[] vertices =
-        //    {
-        //    -1f, -1f,
-        //     1f, -1f,
-        //     1f,  1f,
-        //    -1f,  1f
-        //};
-        //    int[] indices = { 0, 1, 2, 0, 2, 3 };
-
-        //    int vbo = GL.GenBuffer();
-        //    GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-        //    GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-
-        //    int ebo = GL.GenBuffer();
-        //    GL.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
-        //    GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(int), indices, BufferUsageHint.StaticDraw);
-
-        //    GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-        //    GL.EnableVertexAttribArray(0);
-        //}
-
-        //    public void InitializeBuffers()
-        //    {
-        //        // Куб, ограничивающий туманность (в локальных координатах [-1, 1])
-        //        float[] vertices = {
-        //    // Позиции         // Нормали
-        //    -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, // Задняя грань
-        //     1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        //     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        //    -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-
-        //    -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, // Передняя грань
-        //     1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        //     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        //    -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        //};
-
-        //        // Индексы для куба (упрощают отрисовку)
-        //        uint[] indices = {
-        //    // Задняя грань
-        //    0, 1, 2,
-        //    2, 3, 0,
-        //    // Передняя грань
-        //    4, 5, 6,
-        //    6, 7, 4,
-        //    // Левая грань
-        //    0, 4, 7,
-        //    7, 3, 0,
-        //    // Правая грань
-        //    1, 5, 6,
-        //    6, 2, 1,
-        //    // Нижняя грань
-        //    0, 1, 5,
-        //    5, 4, 0,
-        //    // Верхняя грань
-        //    3, 2, 6,
-        //    6, 7, 3
-        //};
-
-        //        // Генерируем VAO
-        //        _vao = GL.GenVertexArray();
-        //        GL.BindVertexArray(_vao);
-
-        //        // Генерируем VBO
-        //        _vbo = GL.GenBuffer();
-        //        GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-        //        GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-
-        //        // Генерируем EBO
-        //        _ebo = GL.GenBuffer();
-        //        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-        //        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
-
-        //        // Настройка атрибутов вершин
-        //        // Позиции (location = 0)
-        //        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
-        //        GL.EnableVertexAttribArray(0);
-
-        //        // Нормали (location = 1)
-        //        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
-        //        GL.EnableVertexAttribArray(1);
-
-        //        // Отвязываем VAO
-        //        GL.BindVertexArray(0);
-        //    }
-
         public void InitializeBuffers()
         {
-            // Вершины куба (без нормалей)
-            float[] vertices = {
-        // Позиции
-        -1.0f, -1.0f, -1.0f,
-         1.0f, -1.0f, -1.0f,
-         1.0f,  1.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,
+            const int latitudeSegments = 32; // Количество сегментов по широте
+            const int longitudeSegments = 32; // Количество сегментов по долготе
+            const float radius = 10.0f; // Радиус сферы
 
-        -1.0f, -1.0f,  1.0f,
-         1.0f, -1.0f,  1.0f,
-         1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,
-    };
+            List<float> vertices = new List<float>();
+            List<uint> indices = new List<uint>();
 
-            // Индексы для куба
-            uint[] indices = {
-        // Задняя грань
-        0, 1, 2,
-        2, 3, 0,
-        // Передняя грань
-        4, 5, 6,
-        6, 7, 4,
-        // Левая грань
-        0, 4, 7,
-        7, 3, 0,
-        // Правая грань
-        1, 5, 6,
-        6, 2, 1,
-        // Нижняя грань
-        0, 1, 5,
-        5, 4, 0,
-        // Верхняя грань
-        3, 2, 6,
-        6, 7, 3
-    };
+            // Генерация вершин сферы
+            for (int lat = 0; lat <= latitudeSegments; lat++)
+            {
+                float theta = lat * MathF.PI / latitudeSegments;
+                float sinTheta = MathF.Sin(theta);
+                float cosTheta = MathF.Cos(theta);
 
-            // Генерация VAO
+                for (int lon = 0; lon <= longitudeSegments; lon++)
+                {
+                    float phi = lon * 2.0f * MathF.PI / longitudeSegments;
+                    float sinPhi = MathF.Sin(phi);
+                    float cosPhi = MathF.Cos(phi);
+
+                    float x = cosPhi * sinTheta;
+                    float y = cosTheta;
+                    float z = sinPhi * sinTheta;
+
+                    // Позиции
+                    vertices.Add(x * radius);
+                    vertices.Add(y * radius);
+                    vertices.Add(z * radius);
+
+                    // Нормали
+                    vertices.Add(x);
+                    vertices.Add(y);
+                    vertices.Add(z);
+                }
+            }
+
+            // Генерация индексов для треугольников
+            for (int lat = 0; lat < latitudeSegments; lat++)
+            {
+                for (int lon = 0; lon < longitudeSegments; lon++)
+                {
+                    uint first = (uint)(lat * (longitudeSegments + 1) + lon);
+                    uint second = first + (uint)longitudeSegments + 1;
+
+                    indices.Add(first);
+                    indices.Add(second);
+                    indices.Add(first + 1);
+
+                    indices.Add(second);
+                    indices.Add(second + 1);
+                    indices.Add(first + 1);
+                }
+            }
+
+            // Генерация VAO, VBO и EBO
             _vao = GL.GenVertexArray();
             GL.BindVertexArray(_vao);
 
-            // Генерация VBO
             _vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Count * sizeof(float), vertices.ToArray(), BufferUsageHint.StaticDraw);
 
-            // Генерация EBO
             _ebo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Count * sizeof(uint), indices.ToArray(), BufferUsageHint.StaticDraw);
 
             // Настройка атрибутов вершин
-            // Позиции (location = 0)
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
             GL.EnableVertexAttribArray(0);
 
-            // Отвязываем VAO
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1);
+
             GL.BindVertexArray(0);
         }
 
         private void InitializeShader()
         {
             string vertexShaderSource = @"
-               #version 330 core
+            #version 330 core
 
-                layout(location = 0) in vec3 aPos; // Local space position of the vertex
-                layout(location = 1) in vec3 aNormal; // Vertex normal (if needed for lighting)
+            layout(location = 0) in vec3 aPosition;
 
-                out vec3 fragPosition; // World space position (for Ray Marching)
-                out vec3 fragNormal; // Vertex normal (optional)
+            uniform mat4 model;
+            uniform mat4 view;
+            uniform mat4 projection;
 
-                uniform mat4 model; // Model matrix (translates from local to world space)
-                uniform mat4 view; // View matrix (camera)
-                uniform mat4 projection; // Projection matrix
+            out vec3 fragPosition;
 
-                void main() {
-                    // Vertex position in world space
-                    vec4 worldPosition = projection * view * model * vec4(aPos, 1.0);
-                    fragPosition = worldPosition.xyz;
-
-                    // Transform the normal to world space
-                    fragNormal = mat3(transpose(inverse(model))) * aNormal;
-
-                    // Translate the vertex position to screen space
-                    gl_Position = worldPosition;
-                }";
+            void main()
+            {
+                vec4 worldPosition = model * vec4(aPosition, 1.0);
+                fragPosition = worldPosition.xyz;
+                gl_Position = projection * view * worldPosition;
+            }";
 
             string fragmentShaderSource = @"
             #version 330 core
+
             out vec4 FragColor;
 
-            in vec3 fragPosition; // Fragment position in world space
+            in vec3 fragPosition;
 
-            uniform vec3 uCameraPosition; // Camera position
-            uniform vec3 uNebulaPosition; // Nebula center
-            uniform float uNebulaScale; // Nebula size
-            uniform float uTime; // Time (for animation)
-            uniform vec3 uBaseColor; // Nebula base color
-            uniform vec3 uHighlightColor; // Accent color
+            uniform vec3 nebulaColor; // Primary nebula color
+            uniform vec3 lightColor; // Secondary color
+            uniform vec3 position; // Nebula position
+            uniform vec3 size; // Nebula size
+            uniform sampler3D noiseTexture; // 3D noise texture
+            uniform float opacity; // Transparency coefficient
+            uniform float edgeSharpness; // Edge sharpness control
 
-            // Hash function for noise generation
-            float hash(vec3 p) {
-            return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453123);
+            // Function for jagged edges
+            float edgeFalloff(vec3 localPos)
+            {
+                // Distance from the center of the sphere
+                float distance = length(localPos - 0.5);
+
+                // Reduce density at sphere edge
+                return exp(-edgeSharpness * pow(max(0.0, distance - 0.5), 2.0));
             }
 
-            // 3D noise
-            float noise(vec3 p) {
-             vec3 i = floor(p);
-             vec3 f = fract(p);
-             vec3 u = f * f * (3.0 - 2.0 * f);
-             return mix(
-             mix(mix(hash(i + vec3(0.0, 0.0, 0.0)), hash(i + vec3(1.0, 0.0, 0.0)), u.x),
-             mix(hash(i + vec3(0.0, 1.0, 0.0)), hash(i + vec3(1.0, 1.0, 0.0)), u.x), u.y),
-             mix(mix(hash(i + vec3(0.0, 0.0, 1.0)), hash(i + vec3(1.0, 0.0, 1.0)), u.x),
-             mix(hash(i + vec3(0.0, 1.0, 1.0)), hash(i + vec3(1.0, 1.0, 1.0)), u.x), u.y), u.z
-             );
-            }
+            void main()
+            {
+                vec3 localPos = (fragPosition - position) / size + 0.5; // Convert to local coordinates
 
-            // Fractal noise (fbm)
-            float fbm(vec3 p) {
-             float value = 0.0;
-             float amplitude = 0.5;
-             float frequency = 1.0;
-             for (int i = 0; i < 5; i++) {
-             value += amplitude * noise(p * frequency);
-             frequency *= 2.0;
-             amplitude *= 0.5;
-             }
-             return value;
-            }
+                // Check if point is inside sphere
+                if (length(localPos - 0.5) > 0.5)
+                {
+                    discard; // Trim all points outside sphere
+                }
 
-            // Ray Marching for volume
-            float raymarch(vec3 origin, vec3 direction) {
-             float totalDensity = 0.0;
-             float t = 0.0;
-             for (int i = 0; i < 100; i++) { // 100 steps Ray Marching
-             vec3 pos = origin + direction * t;
+                // Sample density from noise texture
+                float density = texture(noiseTexture, localPos).r;
 
-             // Check if we are inside the cube
-            vec3 localPos = (pos - uNebulaPosition) / uNebulaScale; // Local position in the cube
-            if (any(lessThan(localPos, vec3(-1.0))) || any(greaterThan(localPos, vec3(1.0)))) {
-            break; // If outside the cube, stop
-            }
+                // Modify density based on edges
+                density *= edgeFalloff(localPos);
 
-            float density = fbm(localPos * 3.0 + uTime * 0.1);
-            totalDensity += density * 0.1;
-            if (totalDensity > 1.0) break; // Clamp the density
-            t += 0.05; // Step
-            }
-            return clamp(totalDensity, 0.0, 1.0);
-            }
-
-            void main() {
-            vec3 rayDir = normalize(fragPosition - uCameraPosition); // Ray direction
-            float density = raymarch(uCameraPosition, rayDir);
-
-            // Nebula color, mix of base and accent colors
-            vec3 nebulaColor = mix(uBaseColor, uHighlightColor, density);
-            FragColor = vec4(nebulaColor, density); // Transparency depends on density
+                // Final color
+                vec3 color = nebulaColor * density * lightColor;
+                FragColor = vec4(color, density * opacity);
             }";
 
             _shader = new Shader(vertexShaderSource, fragmentShaderSource, null, ShaderSourceMode.Code);
         }
+
+        private int Create3DTexture(int size)
+        {
+            int textureId = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture3D, textureId);
+
+            int width = size;
+            int height = size;
+            int depth = size;
+
+            // Генерация данных для текстуры (например, шум)
+            float[] textureData = new float[width * height * depth];
+            Random random = new Random();
+            for (int z = 0; z < depth; z++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        float value = (float)random.NextDouble(); // Или процедурный шум
+                        textureData[x + y * width + z * width * height] = value;
+                    }
+                }
+            }
+
+            // Загрузка данных в OpenGL
+            GL.TexImage3D(TextureTarget.Texture3D, 0, PixelInternalFormat.R8, width, height, depth, 0,
+                          PixelFormat.Red, PixelType.Float, textureData);
+
+            // Настройки текстуры
+            GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int)TextureWrapMode.ClampToEdge);
+            GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+            GL.BindTexture(TextureTarget.Texture3D, 0);
+            return textureId;
+        }
+
     }
 }

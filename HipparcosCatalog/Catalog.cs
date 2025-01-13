@@ -61,6 +61,7 @@ namespace HipparcosCatalog
         /// </summary>
         public float DistanceCameraLablesVisible { get; set; } = 10;
 
+        Nebula3D _nebula3D;
         public Catalog()
         {
             axisRender = new AxisRender();
@@ -129,6 +130,7 @@ namespace HipparcosCatalog
             var textureParams = new TextureLoaderParameters();
             ImageGDI.LoadFromDisk("4.jpg", textureParams, out starTextureHandle, out starTextureTarget);
 
+            _nebula3D = new Nebula3D();
         }
 
         public List<Star> PrepareVertices()
@@ -384,6 +386,8 @@ namespace HipparcosCatalog
             _shader.Disable();
 
             Constellations.Draw(view, projection, model, cameraPosition, textRenderer);
+
+            _nebula3D.Draw(view, projection, model, cameraPosition, textRenderer);
 
             GL.Disable(EnableCap.PointSprite);
             GL.Disable(EnableCap.Blend);
