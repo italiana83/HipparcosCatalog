@@ -102,6 +102,8 @@ namespace HipparcosCatalog
                 0.1f,
                 20000000.0f);
 
+            SetupViewport();
+
             timer2.Start();
         }
 

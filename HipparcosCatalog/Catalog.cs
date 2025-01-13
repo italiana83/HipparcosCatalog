@@ -61,15 +61,11 @@ namespace HipparcosCatalog
         /// </summary>
         public float DistanceCameraLablesVisible { get; set; } = 10;
 
-        //Nebula3D Nebula3D { get; set; } = new Nebula3D();    
         public Catalog()
         {
             axisRender = new AxisRender();
 
             InitializeShaderStars();
-
-            //Nebula3D.InitializeBuffers();
-            
         }
 
         public void Load()
@@ -132,6 +128,7 @@ namespace HipparcosCatalog
 
             var textureParams = new TextureLoaderParameters();
             ImageGDI.LoadFromDisk("4.jpg", textureParams, out starTextureHandle, out starTextureTarget);
+
         }
 
         public List<Star> PrepareVertices()
@@ -286,9 +283,9 @@ namespace HipparcosCatalog
             _shader.SetMatrix4("view", view);
             _shader.SetMatrix4("projection", projection);
             _shader.SetMatrix4("model", model);
-            _shader.SetFloat("time", _time); // Передаем время в шейдер
+
             //_shader.SetVector3("cameraPosition", cameraPosition);
-            //_shader.SetFloat("time", (float)DateTime.Now.TimeOfDay.TotalSeconds);
+            _shader.SetFloat("time", (float)DateTime.Now.TimeOfDay.TotalSeconds);
 
             GL.BindVertexArray(_vao);
             GL.DrawArrays(PrimitiveType.Points, 0, VisibleStars.Count);
@@ -298,43 +295,43 @@ namespace HipparcosCatalog
             {
                 #region DisplayConstellationsNames
                 foreach (var co in Constellations.ConstellationList)
-                foreach (var star in co.Stars)
-                {
-                    // Проверяем видимость звезды
-                    if (!IsPointInFrustum(star.Pos, model, view, projection))
-                        continue; // Звезда не видна, пропускаем её
-
-                    Vector2 screenCoords = TransformWorldToScreen(star.Pos, model, view, projection);
-
-                    if (screenCoords.X < 0 || screenCoords.X > WindowWidth ||
-                        screenCoords.Y < 0 || screenCoords.Y > WindowHeight)
+                    foreach (var star in co.Stars)
                     {
-                        Console.WriteLine("Координаты текста вне видимой области экрана.");
-                        continue;
+                        // Проверяем видимость звезды
+                        if (!IsPointInFrustum(star.Pos, model, view, projection))
+                            continue; // Звезда не видна, пропускаем её
+
+                        Vector2 screenCoords = TransformWorldToScreen(star.Pos, model, view, projection);
+
+                        if (screenCoords.X < 0 || screenCoords.X > WindowWidth ||
+                            screenCoords.Y < 0 || screenCoords.Y > WindowHeight)
+                        {
+                            Console.WriteLine("Координаты текста вне видимой области экрана.");
+                            continue;
+                        }
+
+                        float distanceSol = Vector3.Distance(new Vector3(0, 0, 0), star.Pos);
+                        distanceSol = distanceSol * 3.26156f;// перевод парсеков в световые года
+
+                        string name = null;
+                        Color textColor = Color.LightGray;
+                        Color lineColor = Color.LightCyan;
+
+                        if (DisplayProperNames && !string.IsNullOrEmpty(star.ProperName))
+                            name = $"{star.ProperName} ({distanceSol})";
+                        else if (DisplayStarHip && star.HIP.HasValue)
+                            name = $"{star.HIP.Value} ({distanceSol})";
+                        else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.Gliese))
+                            name = $"{star.Gliese} ({distanceSol})";
+                        else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.BayerFlamsteed))
+                            name = $"{star.BayerFlamsteed} ({distanceSol})";
+                        else if (DisplayHDNames && !string.IsNullOrEmpty(star.HD))
+                            name = $"{star.HD} ({distanceSol})";
+
+
+                        textRenderer.RenderTextWithLines(name, screenCoords.X, screenCoords.Y, 1, textColor, lineColor);
+                        //textRenderer.RenderText(name, screenCoords.X, screenCoords.Y, 1, Color.Yellow);
                     }
-
-                    float distanceSol = Vector3.Distance(new Vector3(0,0,0), star.Pos);
-                    distanceSol = distanceSol * 3.26156f;// перевод парсеков в световые года
-
-                    string name = null;
-                    Color textColor = Color.LightGray;
-                    Color lineColor = Color.LightCyan;
-
-                    if (DisplayProperNames && !string.IsNullOrEmpty(star.ProperName))
-                        name = $"{star.ProperName} ({distanceSol})";
-                    else if (DisplayStarHip && star.HIP.HasValue)
-                        name = $"{star.HIP.Value} ({distanceSol})";
-                    else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.Gliese))
-                        name = $"{star.Gliese} ({distanceSol})";
-                    else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.BayerFlamsteed))
-                        name = $"{star.BayerFlamsteed} ({distanceSol})";
-                    else if (DisplayHDNames && !string.IsNullOrEmpty(star.HD))
-                        name = $"{star.HD} ({distanceSol})";
-              
-
-                    textRenderer.RenderTextWithLines(name, screenCoords.X, screenCoords.Y, 1, textColor, lineColor);
-                    //textRenderer.RenderText(name, screenCoords.X, screenCoords.Y, 1, Color.Yellow);
-                }
                 #endregion
             }
             else if (DisplayStarNames)
@@ -347,7 +344,7 @@ namespace HipparcosCatalog
                     {
                         // Проверяем видимость звезды
                         if (!IsPointInFrustum(star.Pos, model, view, projection))
-                        continue; // Звезда не видна, пропускаем её
+                            continue; // Звезда не видна, пропускаем её
 
                         Vector2 screenCoords = TransformWorldToScreen(star.Pos, model, view, projection);
 
@@ -384,8 +381,7 @@ namespace HipparcosCatalog
                 #endregion
             }
 
-
-
+            _shader.Disable();
 
             Constellations.Draw(view, projection, model, cameraPosition, textRenderer);
 
@@ -393,7 +389,6 @@ namespace HipparcosCatalog
             GL.Disable(EnableCap.Blend);
             GL.Enable(EnableCap.DepthTest);
 
-            //Nebula3D.Draw(view, projection, model, cameraPosition, textRenderer);
 
             if (DisplayAxis)
                 axisRender.DrawAxis(view, projection, model);

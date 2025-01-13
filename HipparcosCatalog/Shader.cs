@@ -93,6 +93,11 @@ namespace HipparcosCatalog
             GL.UseProgram(_handle);
         }
 
+        public void Disable()
+        {
+            GL.UseProgram(0);
+        }
+
         public void SetMatrix4(string name, Matrix4 matrix)
         {
             int location = GL.GetUniformLocation(_handle, name);
