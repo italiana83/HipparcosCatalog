@@ -61,15 +61,11 @@ namespace HipparcosCatalog
         /// </summary>
         public float DistanceCameraLablesVisible { get; set; } = 10;
 
-        //Nebula3D Nebula3D { get; set; } = new Nebula3D();    
         public Catalog()
         {
             axisRender = new AxisRender();
 
-            InitializeShaderStars();
-
-            //Nebula3D.InitializeBuffers();
-            
+            InitializeShaderStars();            
         }
 
         public void Load()
@@ -77,7 +73,7 @@ namespace HipparcosCatalog
             axisRender.Axis.Add(new Axis(100.0f, 0.5f, 1.0f, new Vector3(0.0f, 0.0f, 0.0f)));
             
 
-            var filePath = "hygxyz33333333.csv"; // Путь к вашему файлу
+            var filePath = "./Resources/maint_cat.csv"; // Путь к вашему файлу
             var config = new CsvConfiguration(CultureInfo.InvariantCulture) { Delimiter = ";" };
 
             using (var reader = new StreamReader(filePath))
@@ -131,7 +127,7 @@ namespace HipparcosCatalog
             axisRender.Generate();
 
             var textureParams = new TextureLoaderParameters();
-            ImageGDI.LoadFromDisk("4.jpg", textureParams, out starTextureHandle, out starTextureTarget);
+            ImageGDI.LoadFromDisk("./Resources/4.jpg", textureParams, out starTextureHandle, out starTextureTarget);
         }
 
         public List<Star> PrepareVertices()
@@ -392,8 +388,6 @@ namespace HipparcosCatalog
             GL.Disable(EnableCap.PointSprite);
             GL.Disable(EnableCap.Blend);
             GL.Enable(EnableCap.DepthTest);
-
-            //Nebula3D.Draw(view, projection, model, cameraPosition, textRenderer);
 
             if (DisplayAxis)
                 axisRender.DrawAxis(view, projection, model);

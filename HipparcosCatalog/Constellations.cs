@@ -32,7 +32,7 @@ namespace HipparcosCatalog
             InitializeShaderConstellations();
 
             var textureParams = new TextureLoaderParameters();
-            ImageGDI.LoadFromDisk("1.jpg", textureParams, out starTextureHandle, out starTextureTarget);
+            ImageGDI.LoadFromDisk("./Resources/1.jpg", textureParams, out starTextureHandle, out starTextureTarget);
 
         }
 
