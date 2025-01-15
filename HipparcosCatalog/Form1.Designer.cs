@@ -65,7 +65,8 @@ namespace HipparcosCatalog
             timer2 = new System.Windows.Forms.Timer(components);
             contextMenuStrip1 = new ContextMenuStrip(components);
             toolStripMenuItem1 = new ToolStripMenuItem();
-            wToolStripMenuItem = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripMenuItem();
+            toolStripMenuItem3 = new ToolStripMenuItem();
             expander1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numericUpDown1).BeginInit();
             panel1.SuspendLayout();
@@ -446,9 +447,9 @@ namespace HipparcosCatalog
             // contextMenuStrip1
             // 
             contextMenuStrip1.ImageScalingSize = new Size(20, 20);
-            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, wToolStripMenuItem });
+            contextMenuStrip1.Items.AddRange(new ToolStripItem[] { toolStripMenuItem1, toolStripMenuItem2, toolStripMenuItem3 });
             contextMenuStrip1.Name = "contextMenuStrip1";
-            contextMenuStrip1.Size = new Size(326, 52);
+            contextMenuStrip1.Size = new Size(326, 76);
             // 
             // toolStripMenuItem1
             // 
@@ -457,11 +458,20 @@ namespace HipparcosCatalog
             toolStripMenuItem1.Text = "Использовать как центр координат";
             toolStripMenuItem1.Click += toolStripMenuItem1_Click;
             // 
-            // wToolStripMenuItem
+            // toolStripMenuItem2
             // 
-            wToolStripMenuItem.Name = "wToolStripMenuItem";
-            wToolStripMenuItem.Size = new Size(325, 24);
-            wToolStripMenuItem.Text = "w";
+            toolStripMenuItem2.CheckOnClick = true;
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(325, 24);
+            toolStripMenuItem2.Text = "Прикрепить выделение";
+            toolStripMenuItem2.CheckedChanged += toolStripMenuItem2_CheckedChanged;
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(325, 24);
+            toolStripMenuItem3.Text = "Открепить выделение";
+            toolStripMenuItem3.CheckedChanged += toolStripMenuItem3_CheckedChanged;
             // 
             // Form1
             // 
@@ -518,7 +528,7 @@ namespace HipparcosCatalog
         private System.Windows.Forms.Timer timer2;
         private ContextMenuStrip contextMenuStrip1;
         private ToolStripMenuItem toolStripMenuItem1;
-        private ToolStripMenuItem wToolStripMenuItem;
+        private ToolStripMenuItem toolStripMenuItem2;
         private RichTextBox richTextBox1;
         private Expander expander1;
         private Expander expander2;
@@ -532,5 +542,6 @@ namespace HipparcosCatalog
         private Expander expander6;
         private CheckBox checkBox3;
         private SplitContainer splitContainer1;
+        private ToolStripMenuItem toolStripMenuItem3;
     }
 }

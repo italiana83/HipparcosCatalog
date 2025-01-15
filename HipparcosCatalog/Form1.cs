@@ -31,6 +31,8 @@ namespace HipparcosCatalog
 
         float pointSize = 4.5F;
         TextRenderer _textRenderer;
+        TextRenderer _textRenderer2;
+
         Star _selectedStar = null;
         Vector3 modelCenter = new Vector3(0, 0, 0);
 
@@ -65,7 +67,7 @@ namespace HipparcosCatalog
             var stars = _catalog.PrepareVertices();
             _catalog.InitializeBuffers();
 
-            _bracket = new Selector();
+
             stars = stars.OrderBy(x => x.ProperName).ToList();
             foreach (var star in stars)
             {
@@ -89,8 +91,11 @@ namespace HipparcosCatalog
             _camera.Position = new Vector3(0, 0, -1);
             _camera.Orientation = new Vector3(0, 0, 0);
 
+            _bracket = new Selector();
             _textRenderer = new TextRenderer(@"C:\\Windows\Fonts\arial.ttf", 22, glControl1.Width, glControl1.Height);
-            //_textRenderer = new TextRenderer(@"C:\\Windows\Fonts\times.ttf", 22, glControl1.Width, glControl1.Height);
+            _textRenderer2 = new TextRenderer(@"C:\\Windows\Fonts\times.ttf", 22, glControl1.Width, glControl1.Height);
+
+            _bracket.TextRenderer = _textRenderer2;
 
             _catalog.WindowWidth = glControl1.Width;
             _catalog.WindowHeight = glControl1.Height;
@@ -137,7 +142,23 @@ namespace HipparcosCatalog
                     _projection,
                     screenSize
                 );
-                _bracket.RenderStarBracket(screenPosition, screenSize, 20.0f);
+
+                double? distance = _selectedStar.Distance * 3.26156f;
+                string text = $"Name: {_selectedStar.ProperName}\n" +
+                    $"Gliese: {_selectedStar.Gliese}\n" +
+                    $"HD: {_selectedStar.HD}\n" +
+                    $"HIP: {_selectedStar.HIP}\n" +
+                    $"Bayer: {_selectedStar.BayerFlamsteed}\n" +
+                    $"Distance LY: {distance:F2}\n" +
+                    $"Spectrum: {_selectedStar.Spectrum}";
+
+                GL.Disable(EnableCap.DepthTest);
+                GL.Enable(EnableCap.Blend);
+                GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+                _bracket.RenderStarBracket(text, screenPosition, screenSize, toolStripMenuItem2.Checked);
+                GL.Disable(EnableCap.PointSprite);
+                GL.Disable(EnableCap.Blend);
+                GL.Enable(EnableCap.DepthTest);
             }
 
             GL.Flush();
@@ -172,9 +193,11 @@ namespace HipparcosCatalog
 
             // Обработка выделения объекта
             Vector3 rayDirection = Selector.CalculateRayFromMouse(mousePosition, _camera, _projection, screenSize);
-            _selectedStar = Selector.SelectStar(_camera.Position, rayDirection, _model, _catalog.VisibleStars);
+            if(!toolStripMenuItem2.Checked)
+                _selectedStar = Selector.SelectStar(_camera.Position, rayDirection, _model, _catalog.VisibleStars);
             if (_selectedStar != null)
             {
+                toolStripMenuItem2.Enabled = true;
                 double? distance = _selectedStar.Distance * 3.26156f;
                 string text = $"Name: {_selectedStar.ProperName}\n" +
                     $"Gliese: {_selectedStar.Gliese}\n" +
@@ -188,6 +211,7 @@ namespace HipparcosCatalog
             }
             else
             {
+                toolStripMenuItem2.Enabled = false;
                 richTextBox1.Text = "";
             }
 
@@ -331,6 +355,9 @@ namespace HipparcosCatalog
             _textRenderer.WindowHeight = h;
             _textRenderer.WindowWidth = w;
             _textRenderer.UpdateProjection();
+            _textRenderer2.WindowHeight = h;
+            _textRenderer2.WindowWidth = w;
+            _textRenderer2.UpdateProjection();
 
             GL.Viewport(0, 0, w, h);
 
@@ -598,5 +625,19 @@ namespace HipparcosCatalog
 
         }
 
+        private void toolStripMenuItem3_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void toolStripMenuItem2_CheckedChanged(object sender, EventArgs e)
+        {
+            if(_selectedStar != null)
+            {
+
+            }
+            else
+                toolStripMenuItem2.Checked = false;
+        }
     }
 }

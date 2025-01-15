@@ -263,10 +263,10 @@ namespace HipparcosCatalog
             float textY = firstLineEnd.Y + 15.0f; // Смещаем текст выше второй линии
 
             // Рендеринг текста
-            RenderText(text, textX, textY, scale, textColor);
+            //RenderText(text, textX, textY, scale, textColor);
         }
 
-        public void RenderText(string text, float x, float y, float scale, Color color)
+        public void RenderText(string text, float x, float y, float scale, Color color, RectangleF boundingBox)
         {
             //// Вычисление ширины и высоты текста
             //float textWidth = 0.0f;
@@ -294,9 +294,39 @@ namespace HipparcosCatalog
             _shader.SetInt("text", 0);
             GL.BindVertexArray(_vao);
 
+            float startX = x; // Начальная позиция по X
+            float maxWidth = boundingBox.Width; // Максимальная ширина строки
+            float maxHeight = boundingBox.Height; // Максимальная высота текста
+            float lineHeight = 24 * scale; // Высота строки (настраиваемая)
             // Отрисовка текста
             foreach (var c in text)
             {
+                float sizeSymbolX = 0;
+
+                if(_characters.ContainsKey(c))
+                    sizeSymbolX = _characters[c].SizeX;
+
+                if (c == '\n' || (x + 6 * scale > startX + maxWidth - sizeSymbolX*2))
+                {
+                    // Перенос строки: сброс X и смещение Y
+                    x = startX;
+                    y -= lineHeight;
+
+                    // Прерываем, если текст выходит за нижнюю границу
+                    if (y - lineHeight < boundingBox.Y)
+                        break;
+
+                    if (c == '\n')
+                        continue;
+                }
+                if (c == '\n')
+                {
+                    // Перенос строки: сброс X и смещение Y
+                    x = startX;
+                    y -= 24 * scale; // Регулируйте 24 в зависимости от межстрочного интервала
+                    continue;
+                }
+
                 if (!_characters.ContainsKey(c) && c != ' ')
                     continue;
 

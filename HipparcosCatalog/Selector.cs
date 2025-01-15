@@ -1,10 +1,14 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Microsoft.VisualBasic.Devices;
+using OpenTK.GLControl;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace HipparcosCatalog
 {
@@ -12,122 +16,278 @@ namespace HipparcosCatalog
     {
         int vao, vbo;
         private Shader _shader;
+        public TextRenderer TextRenderer { get; set; }
+        float[] vertexData;
 
-        float[] bracketVertices = {
-            // Верхняя левая скобка
-            -1.0f,  1.0f,  -0.8f,  1.0f,  // Горизонтальная линия
-            -1.0f,  1.0f,  -1.0f,  0.8f,  // Вертикальная линия
+        bool _pinSelection = false;
 
-            // Верхняя правая скобка
-             0.8f,  1.0f,   1.0f,  1.0f,  // Горизонтальная линия
-             1.0f,  1.0f,   1.0f,  0.8f,  // Вертикальная линия
+        bool isOutsideTop = false;
+        bool isOutsideRight = false;
 
-            // Нижняя левая скобка
-            -1.0f, -0.8f,  -1.0f, -1.0f,  // Вертикальная линия
-            -1.0f, -1.0f,  -0.8f, -1.0f,  // Горизонтальная линия
-
-            // Нижняя правая скобка
-             1.0f, -0.8f,   1.0f, -1.0f,  // Вертикальная линия
-             0.8f, -1.0f,   1.0f, -1.0f   // Горизонтальная линия
-        };
-
-
-        public Selector() 
+        float squareSize = 30.0f;
+        float rectWidth = 150.0f;
+        float rectHeight = 300.0f;
+        float rectOffsetX;
+        float rectOffsetY;
+        
+        private void GenerateVertices(Vector2 screenPosition, Vector2 screenSize)
         {
-            // Генерация буферов
-            GL.GenVertexArrays(1, out vao);
-            GL.GenBuffers(1, out vbo);
+            // Координаты квадрата
+            float squareTop = screenPosition.Y - squareSize / 2;
+            float squareBottom = screenPosition.Y + squareSize / 2;
+            float squareLeft = screenPosition.X - squareSize / 2;
+            float squareRight = screenPosition.X + squareSize / 2;
 
-            // Заполнение данных
-            GL.BindVertexArray(vao);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData(BufferTarget.ArrayBuffer, bracketVertices.Length * sizeof(float), bracketVertices, BufferUsageHint.StaticDraw);
+            // Проверка верхней и нижней границы экрана
+            if (squareTop - rectHeight < 0) // Верхняя граница экрана
+            {
+                rectOffsetY = squareSize / 2 + 10.0f;
+                isOutsideTop = true;
+            }
+            else if (squareBottom + rectHeight > screenSize.Y) // Нижняя граница экрана
+            {
+                rectOffsetY = -squareSize / 2 - rectHeight - 10.0f;
+                isOutsideTop = false;
+            }
+            else
+            {
+                rectOffsetY = -squareSize / 2 - rectHeight - 10.0f;
+                isOutsideTop = false;
+            }
 
-            // Настройка атрибутов шейдера
-            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 2 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);
+            // Проверка выхода за правую границу экрана
+            if (squareRight + rectWidth > screenSize.X) // Пересечение правой границы
+            {
+                rectOffsetX = -rectWidth - (squareSize / 2 + 10.0f);
+                isOutsideRight = true;
+            }
+            else
+            {
+                rectOffsetX = squareSize / 2 + 10.0f;
+                isOutsideRight = false;
+            }
 
-            // Отвязка
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.BindVertexArray(0);
+            Vector3 squareColor = new Vector3(0.717f, 0.717f, 0.717f);
+            if(_pinSelection)
+                squareColor = new Vector3(0.0f, 1.0f, 0.0f);
+            // Вершины квадрата
+            float[] squareVertices = new float[]
+            {
+                -squareSize / 2, -squareSize / 2, squareColor.X, squareColor.Y, squareColor.Z, 1.0f,
+                 squareSize / 2, -squareSize / 2, squareColor.X, squareColor.Y, squareColor.Z, 1.0f,
+                 squareSize / 2,  squareSize / 2, squareColor.X, squareColor.Y, squareColor.Z, 1.0f,
+                -squareSize / 2,  squareSize / 2, squareColor.X, squareColor.Y, squareColor.Z, 1.0f
+            };
+
+            // Вершины прямоугольника
+            float[] rectVertices = new float[]
+            {
+                rectOffsetX, rectOffsetY, 0.717f, 0.717f, 0.717f, 0.5f,
+                rectOffsetX + rectWidth, rectOffsetY, 0.717f, 0.717f, 0.717f, 0.1f,
+                rectOffsetX + rectWidth, rectOffsetY + rectHeight, 0.717f, 0.717f, 0.717f, 0.5f,
+                rectOffsetX, rectOffsetY + rectHeight, 0.717f, 0.717f, 0.717f, 0.1f
+            };
+
+            // Обработка линий в зависимости от положения прямоугольника
+            // Вершины линий
+            float[] lineVertices;
+            if (isOutsideTop && isOutsideRight)
+            {
+                // Прямоугольник ниже и левее квадрата
+                lineVertices = new float[]
+                {
+                    // Линия 1
+                    squareVertices[0], squareVertices[1], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[0], rectVertices[1], 0.717f, 0.717f, 0.717f, 0.0f,
+
+                    // Линия 2
+                    squareVertices[12], squareVertices[13], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[12], rectVertices[13], 0.717f, 0.717f, 0.717f, 0.0f
+                };
+            }
+            else if (!isOutsideTop && !isOutsideRight)
+            {
+                // Прямоугольник выше и правее квадрата
+                lineVertices = new float[]
+                {
+                    // Линия 1
+                    squareVertices[0], squareVertices[1], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[0], rectVertices[1], 0.717f, 0.717f, 0.717f, 0.0f,
+
+                    // Линия 2
+                    squareVertices[12], squareVertices[13], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[12], rectVertices[13], 0.717f, 0.717f, 0.717f, 0.0f
+                };
+            }
+            else if (isOutsideTop && !isOutsideRight)
+            {
+                // Прямоугольник ниже и правее квадрата
+                lineVertices = new float[]
+                {
+                    // Линия 1
+                    squareVertices[6], squareVertices[7], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[6], rectVertices[7], 0.717f, 0.717f, 0.717f, 0.0f,
+
+                    // Линия 2
+                    squareVertices[18], squareVertices[19], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[18], rectVertices[19], 0.717f, 0.717f, 0.717f, 0.0f
+                };
+            }
+            else if (!isOutsideTop && isOutsideRight)
+            {
+                // Прямоугольник выше и левее квадрата
+                lineVertices = new float[]
+                {
+                    // Линия 1
+                    squareVertices[6], squareVertices[7], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[6], rectVertices[7], 0.717f, 0.717f, 0.717f, 0.0f,
+
+                    // Линия 2
+                    squareVertices[18], squareVertices[19], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[18], rectVertices[19], 0.717f, 0.717f, 0.717f, 0.0f
+                };
+            }
+            else
+            {
+                // Прямоугольник выше и правее квадрата
+                lineVertices = new float[]
+                {
+                    // Линия 1
+                    squareVertices[0], squareVertices[1], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[0], rectVertices[1], 0.717f, 0.717f, 0.717f, 0.0f,
+
+                    // Линия 2
+                    squareVertices[12], squareVertices[13], 0.717f, 0.717f, 0.717f, 1.0f,
+                    rectVertices[12], rectVertices[13], 0.717f, 0.717f, 0.717f, 0.0f
+                };
+            }
+
+            // Объединяем все вершины
+            vertexData = new float[squareVertices.Length + rectVertices.Length + lineVertices.Length];
+            Array.Copy(squareVertices, 0, vertexData, 0, squareVertices.Length);
+            Array.Copy(rectVertices, 0, vertexData, squareVertices.Length, rectVertices.Length);
+            Array.Copy(lineVertices, 0, vertexData, squareVertices.Length + rectVertices.Length, lineVertices.Length);
+        }
+
+        public Selector()
+        {
+            // Вершины квадрата, прямоугольника и линий в относительных единицах
+            //GenerateVertices();
+
+            // Создаем VAO и VBO
+          
 
             string vertexShaderSource = @"
             #version 330 core
 
-            layout(location = 0) in vec2 aPos; // Line position in local coordinates
-            uniform vec2 screenPosition;       // Screen coordinates of the star's center
-            uniform vec2 screenSize;           // Screen size
-            uniform float lineSize;            // Line size in pixels
+            layout(location = 0) in vec2 aPos; // Position in local coordinates
+            layout(location = 1) in vec4 aColor; // Alpha channel
+            uniform vec2 screenPosition; // Position of the square on the screen
+            uniform vec2 screenSize; // Screen size
+
+            out vec4 vColor; // Pass the alpha channel to the fragment shader
 
             void main()
             {
-                // Scale the position relative to the center
-                vec2 scaledPos = aPos * lineSize;
+                // Convert coordinates to NDC
+                vec2 ndcPosition = (screenPosition + aPos) / screenSize * 2.0 - 1.0;
 
-                // Convert to normalized device coordinates (NDC)
-                vec2 ndcPosition = (screenPosition + scaledPos) / screenSize * 2.0 - 1.0;
-
-                // Flip the Y-axis for OpenGL
+                // Invert Y for OpenGL
                 ndcPosition.y = -ndcPosition.y;
 
-                // Set the final position
+                // Pass the position and alpha channel
                 gl_Position = vec4(ndcPosition, 0.0, 1.0);
+                vColor = aColor;
             }";
 
             string fragmentShaderSource = @"
-                #version 330 core
+            #version 330 core
 
-                out vec4 FragColor;
+            in vec4 vColor; // Get alpha channel from vertex shader
+            out vec4 FragColor;
 
-                void main()
-                {
-                    FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green color
-                }";
+            void main()
+            {
+                FragColor = vColor; // Use alpha channel for transparency
+            }";
 
-            string geometryShaderSource = @"
-                #version 330 core
-
-                layout(lines) in;
-                layout(triangle_strip, max_vertices = 4) out;
-
-                uniform float lineThickness;
-
-                void main()
-                {
-                    vec2 direction = normalize(vec2(gl_in[1].gl_Position.xy - gl_in[0].gl_Position.xy));
-    
-                    vec2 perpendicular = vec2(-direction.y, direction.x) * lineThickness;
-
-                    gl_Position = gl_in[0].gl_Position + vec4(perpendicular, 0.0, 0.0);
-                    EmitVertex();
-                    gl_Position = gl_in[0].gl_Position - vec4(perpendicular, 0.0, 0.0);
-                    EmitVertex();
-                    gl_Position = gl_in[1].gl_Position + vec4(perpendicular, 0.0, 0.0);
-                    EmitVertex();
-                    gl_Position = gl_in[1].gl_Position - vec4(perpendicular, 0.0, 0.0);
-                    EmitVertex();
-
-                    EndPrimitive();
-                }";
-
-            _shader = new Shader(vertexShaderSource, fragmentShaderSource, geometryShaderSource, ShaderSourceMode.Code);
+            _shader = new Shader(vertexShaderSource, fragmentShaderSource, null, ShaderSourceMode.Code);
         }
 
-        public void RenderStarBracket(Vector2 screenPosition, Vector2 screenSize, float lineSize)
+        public void InitBuffer()
         {
+            vao = GL.GenVertexArray();
+            vbo = GL.GenBuffer();
+
+            GL.BindVertexArray(vao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+
+            // Загружаем данные вершин в VBO
+            GL.BufferData(BufferTarget.ArrayBuffer, vertexData.Length * sizeof(float), vertexData, BufferUsageHint.StaticDraw);
+
+            GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0); // Позиция
+            GL.EnableVertexAttribArray(0);
+
+            GL.VertexAttribPointer(1, 4, VertexAttribPointerType.Float, false, 6 * sizeof(float), 2 * sizeof(float)); // Цвет (RGB) + альфа
+            GL.EnableVertexAttribArray(1);
+
+            GL.BindVertexArray(0);
+        }
+        public void RenderStarBracket(string text, Vector2 screenPosition, Vector2 screenSize, bool pinSelection)
+        {
+            _pinSelection = pinSelection;
+            GenerateVertices(screenPosition, screenSize);
+            InitBuffer();
             // Используем шейдер
             _shader.Use();
 
             // Передача униформ
             _shader.SetVector2("screenPosition", screenPosition);
             _shader.SetVector2("screenSize", screenSize);
-            _shader.SetFloat("lineSize", lineSize);
-            _shader.SetFloat("lineThickness", 0.002f); // Установите желаемую толщину
 
-            // Отрисовка линий
             GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Lines, 0, 16); // 16 вершин для 8 линий
+
+            // Рисуем квадрат
+            GL.DrawArrays(PrimitiveType.LineLoop, 0, 4);
+
+            // Рисуем прямоугольник
+            GL.DrawArrays(PrimitiveType.LineLoop, 4, 4);
+
+            // Рисуем линии
+            GL.DrawArrays(PrimitiveType.Lines, 8, 4);
+
             GL.BindVertexArray(0);
+
+            float rectLeftTopX = screenPosition.X + vertexData[36];
+            float rectLeftTopY = screenPosition.Y + rectOffsetY;// vertexData[37];
+
+            // Координаты для текста
+            //float textOffsetX = 30.0f; // Отступ вправо
+            //float textOffsetY = 50.0f; // Отступ вниз
+
+            // Вычисляем координаты прямоугольника относительно мышки
+            float rectLeft = screenPosition.X;             // Левый край прямоугольника
+            float rectTop = screenPosition.Y - rectHeight + squareSize; // Верхний край прямоугольника
+
+            //float textScreenX;
+            //float textScreenY;
+
+            //if (isOutsideRight)
+            //    textScreenX = screenPosition.X - rectWidth - squareSize/2;//   прямоугольник слева от квадрата
+            //else
+            //    textScreenX = screenPosition.X + rectOffsetX + 10;//   прямоугольник справа от квадрата
+
+            //if (isOutsideTop)               
+            //    textScreenY = screenSize.Y - screenPosition.Y - squareSize;//   прямоугольник снизу от квадрата
+            //else
+            //    textScreenY = screenSize.Y - screenPosition.Y + rectHeight + 10;//   прямоугольник сверху от квадрата
+            // Координаты для текста
+            // Вычисляем координаты для текста (левый верхний угол прямоугольника)
+            float textScreenX = screenPosition.X + rectOffsetX + 10; // Левый край прямоугольника
+            float textScreenY = screenSize.Y - (screenPosition.Y + rectOffsetY) - 25; // Верхний край прямоугольника
+
+
+            TextRenderer.RenderText(text, textScreenX, textScreenY, 1, Color.FromArgb(183,183,183), new RectangleF(0,0, rectWidth, rectHeight));
         }
 
         public static Vector3 CalculateRayFromMouse(Vector2 mousePosition, Camera camera, Matrix4 projectionMatrix, Vector2 screenSize)
@@ -199,42 +359,6 @@ namespace HipparcosCatalog
             return nearestStar;
         }
 
-        //public static Star SelectStar(Vector3 rayOrigin, Vector3 rayDirection, List<Star> stars)
-        //{
-        //    Star nearestStar = null;
-        //    float nearestDistance = float.MaxValue;
-
-        //    foreach (Star star in stars)
-        //    {
-        //        // Преобразуем позицию звезды через её матрицу модели
-        //        Vector4 localPosition = new Vector4(star.Pos, 1.0f);
-        //        Vector4 worldPosition4 = localPosition.Multiply(star.ModelMatrix);
-        //        Vector3 worldPosition = new Vector3(worldPosition4.X, worldPosition4.Y, worldPosition4.Z);
-
-        //        // Рассчитываем радиус в мировых координатах (если масштабирование присутствует)
-        //        // Предполагаем, что матрица модели содержит только масштабирование, вращение и трансляцию
-        //        // Если в матрице модели присутствует искажение, это нужно учитывать отдельно
-        //        Vector3 scale;
-        //        Quaternion rotation;
-        //        Vector3 translation;
-        //        DecomposeModelMatrix(star.ModelMatrix, out scale, out rotation, out translation);
-        //        float worldRadius = star.Radius * Math.Max(scale.X, Math.Max(scale.Y, scale.Z));
-
-        //        if (RayIntersectsSphere(rayOrigin, rayDirection, worldPosition, worldRadius))
-        //        {
-        //            float distance = (worldPosition - rayOrigin).LengthSquared;
-        //            if (distance < nearestDistance)
-        //            {
-        //                nearestDistance = distance;
-        //                nearestStar = star;
-        //            }
-        //        }
-        //    }
-
-        //    return nearestStar;
-        //}
-
-        // Метод для декомпозиции матрицы модели на масштаб, вращение и трансляцию
         public static void DecomposeModelMatrix(Matrix4 model, out Vector3 scale, out Quaternion rotation, out Vector3 translation)
         {
             // Используем System.Numerics.Matrix4x4 для декомпозиции
