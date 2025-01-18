@@ -458,10 +458,12 @@ namespace HipparcosCatalog
             if (_camera != null)
             {
                 Star star = (Star)comboBox1.SelectedItem;
+                _selectedStar = star;
+
                 // Параметр для управления расстоянием от звезды (чем больше, тем ближе к звезде)
                 float alpha = 0.8f; // Значение от 0 до 1, например, 0.8 для позиции ближе к звезде
                 // Рассчитываем точку на линии между началом координат и звездой
-                Vector3 cameraPosition = star.Pos * alpha + new Vector3(0, 0, 0) * (1 - alpha);
+                Vector3 cameraPosition = star.Pos + new Vector3(0, 0, 2);
                 // Устанавливаем позицию камеры
                 _camera.Position = cameraPosition;
 

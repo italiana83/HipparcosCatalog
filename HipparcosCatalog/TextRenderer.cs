@@ -263,10 +263,10 @@ namespace HipparcosCatalog
             float textY = firstLineEnd.Y + 15.0f; // Смещаем текст выше второй линии
 
             // Рендеринг текста
-            //RenderText(text, textX, textY, scale, textColor);
+            RenderText(text, textX, textY, scale, textColor);
         }
 
-        public void RenderText(string text, float x, float y, float scale, Color color, RectangleF boundingBox)
+        public void RenderText(string text, float x, float y, float scale, Color color, RectangleF? boundingBox = null)
         {
             //// Вычисление ширины и высоты текста
             //float textWidth = 0.0f;
@@ -294,9 +294,12 @@ namespace HipparcosCatalog
             _shader.SetInt("text", 0);
             GL.BindVertexArray(_vao);
 
+            if (boundingBox == null)
+                boundingBox = new RectangleF(float.MaxValue, float.MaxValue, float.MaxValue, float.MaxValue);
+
             float startX = x; // Начальная позиция по X
-            float maxWidth = boundingBox.Width; // Максимальная ширина строки
-            float maxHeight = boundingBox.Height; // Максимальная высота текста
+            float maxWidth = boundingBox.Value.Width; // Максимальная ширина строки
+            float maxHeight = boundingBox.Value.Height; // Максимальная высота текста
             float lineHeight = 24 * scale; // Высота строки (настраиваемая)
             // Отрисовка текста
             foreach (var c in text)
@@ -313,7 +316,7 @@ namespace HipparcosCatalog
                     y -= lineHeight;
 
                     // Прерываем, если текст выходит за нижнюю границу
-                    if (y - lineHeight < boundingBox.Y)
+                    if (y - lineHeight < boundingBox.Value.Y)
                         break;
 
                     if (c == '\n')

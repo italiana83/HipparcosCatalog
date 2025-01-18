@@ -45,7 +45,7 @@ namespace HipparcosCatalog
         public bool DisplayBayerFlamsteedNames { get; set; } = false;
         public bool DisplayHDNames { get; set; } = false;
 
-
+        AxisCircularRender axisCircularRender;
         AxisRender axisRender;
 
         uint starTextureHandle;
@@ -64,13 +64,14 @@ namespace HipparcosCatalog
         public Catalog()
         {
             axisRender = new AxisRender();
-
+            axisCircularRender = new AxisCircularRender();
+            axisCircularRender.GenerateCirclesAndLinesAndPlane(40, 3, new Vector3(0,0,0), 100, "XZ");
             InitializeShaderStars();            
         }
 
         public void Load()
         {
-            axisRender.Axis.Add(new Axis(100.0f, 0.5f, 1.0f, new Vector3(0.0f, 0.0f, 0.0f)));
+            axisRender.Axis.Add(new Axis(1000.0f, 0.5f, 1.0f, new Vector3(0.0f, 0.0f, 0.0f)));
             
 
             var filePath = "./Resources/maint_cat.csv"; // Путь к вашему файлу
@@ -119,15 +120,13 @@ namespace HipparcosCatalog
 
                     if (star.ProperName == "Aldebaran" || star.ProperName == "Proxima Centauri")
                         axisRender.Axis.Add(new Axis(5.0f, 0.0f, 0.0f, star.Pos));
-
-
                 }
             }
 
             axisRender.Generate();
 
             var textureParams = new TextureLoaderParameters();
-            ImageGDI.LoadFromDisk("./Resources/4.jpg", textureParams, out starTextureHandle, out starTextureTarget);
+            ImageGDI.LoadFromDisk("./Resources/1.jpg", textureParams, out starTextureHandle, out starTextureTarget);
         }
 
         public List<Star> PrepareVertices()
@@ -222,21 +221,15 @@ namespace HipparcosCatalog
 
                     float pulse = 1.0 + 0.01 * sin(time * 5.0);
                     vec4 mod = view * model * vec4(aPosition, 1.0);
-                    gl_PointSize = (0.01 + 20.0 / -mod.z * 2.0) * pulse;
+                    gl_PointSize = (0.01 + 30.0 / -mod.z * 5.0) * pulse;
+                    vColor = aColorRGB;
 
-                    float angle = atan(aPosition.y, aPosition.x) + time;
-
-                    float halo = 0.8 + 0.1 * sin(angle * 10.0);
-
-                    float brightnessBoost = 1.0 + 0.1 * max(0.0, sin(time * 2.0));
-
-                    alpha = halo;
-                    vColor = aColorRGB * halo * brightnessBoost;
 
                     //float angle = atan(aPosition.y, aPosition.x) + time;
-                    //float halo = 0.8 + 0.05 * sin(angle * 10.0);
+                    //float halo = 0.8 + 0.1 * sin(angle * 10.0);
+                    //float brightnessBoost = 1.0 + 0.1 * max(0.0, sin(time * 2.0));
                     //alpha = halo;
-                    //vColor = aColorRGB * halo;
+                    //vColor = aColorRGB * halo * brightnessBoost;
                 }";
 
             // Фрагментный шейдер
@@ -294,43 +287,43 @@ namespace HipparcosCatalog
             {
                 #region DisplayConstellationsNames
                 foreach (var co in Constellations.ConstellationList)
-                foreach (var star in co.Stars)
-                {
-                    // Проверяем видимость звезды
-                    if (!IsPointInFrustum(star.Pos, model, view, projection))
-                        continue; // Звезда не видна, пропускаем её
-
-                    Vector2 screenCoords = TransformWorldToScreen(star.Pos, model, view, projection);
-
-                    if (screenCoords.X < 0 || screenCoords.X > WindowWidth ||
-                        screenCoords.Y < 0 || screenCoords.Y > WindowHeight)
+                    foreach (var star in co.Stars)
                     {
-                        Console.WriteLine("Координаты текста вне видимой области экрана.");
-                        continue;
+                        // Проверяем видимость звезды
+                        if (!IsPointInFrustum(star.Pos, model, view, projection))
+                            continue; // Звезда не видна, пропускаем её
+
+                        Vector2 screenCoords = TransformWorldToScreen(star.Pos, model, view, projection);
+
+                        if (screenCoords.X < 0 || screenCoords.X > WindowWidth ||
+                            screenCoords.Y < 0 || screenCoords.Y > WindowHeight)
+                        {
+                            Console.WriteLine("Координаты текста вне видимой области экрана.");
+                            continue;
+                        }
+
+                        float distanceSol = Vector3.Distance(new Vector3(0, 0, 0), star.Pos);
+                        distanceSol = distanceSol * 3.26156f;// перевод парсеков в световые года
+
+                        string name = null;
+                        Color textColor = Color.LightGray;
+                        Color lineColor = Color.LightCyan;
+
+                        if (DisplayProperNames && !string.IsNullOrEmpty(star.ProperName))
+                            name = $"{star.ProperName} ({distanceSol})";
+                        else if (DisplayStarHip && star.HIP.HasValue)
+                            name = $"{star.HIP.Value} ({distanceSol})";
+                        else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.Gliese))
+                            name = $"{star.Gliese} ({distanceSol})";
+                        else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.BayerFlamsteed))
+                            name = $"{star.BayerFlamsteed} ({distanceSol})";
+                        else if (DisplayHDNames && !string.IsNullOrEmpty(star.HD))
+                            name = $"{star.HD} ({distanceSol})";
+
+
+                        textRenderer.RenderTextWithLines(name, screenCoords.X, screenCoords.Y, 1, textColor, lineColor);
+                        //textRenderer.RenderText(name, screenCoords.X, screenCoords.Y, 1, Color.Yellow);
                     }
-
-                    float distanceSol = Vector3.Distance(new Vector3(0,0,0), star.Pos);
-                    distanceSol = distanceSol * 3.26156f;// перевод парсеков в световые года
-
-                    string name = null;
-                    Color textColor = Color.LightGray;
-                    Color lineColor = Color.LightCyan;
-
-                    if (DisplayProperNames && !string.IsNullOrEmpty(star.ProperName))
-                        name = $"{star.ProperName} ({distanceSol})";
-                    else if (DisplayStarHip && star.HIP.HasValue)
-                        name = $"{star.HIP.Value} ({distanceSol})";
-                    else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.Gliese))
-                        name = $"{star.Gliese} ({distanceSol})";
-                    else if (DisplayGlieseNames && !string.IsNullOrEmpty(star.BayerFlamsteed))
-                        name = $"{star.BayerFlamsteed} ({distanceSol})";
-                    else if (DisplayHDNames && !string.IsNullOrEmpty(star.HD))
-                        name = $"{star.HD} ({distanceSol})";
-              
-
-                    textRenderer.RenderTextWithLines(name, screenCoords.X, screenCoords.Y, 1, textColor, lineColor);
-                    //textRenderer.RenderText(name, screenCoords.X, screenCoords.Y, 1, Color.Yellow);
-                }
                 #endregion
             }
             else if (DisplayStarNames)
@@ -343,7 +336,7 @@ namespace HipparcosCatalog
                     {
                         // Проверяем видимость звезды
                         if (!IsPointInFrustum(star.Pos, model, view, projection))
-                        continue; // Звезда не видна, пропускаем её
+                            continue; // Звезда не видна, пропускаем её
 
                         Vector2 screenCoords = TransformWorldToScreen(star.Pos, model, view, projection);
 
@@ -380,17 +373,26 @@ namespace HipparcosCatalog
                 #endregion
             }
 
-
-
-
             Constellations.Draw(view, projection, model, cameraPosition, textRenderer);
+
+            if (DisplayAxis)
+            {
+                axisCircularRender.DrawCircle(view, projection, model);
+
+            }
+
 
             GL.Disable(EnableCap.PointSprite);
             GL.Disable(EnableCap.Blend);
             GL.Enable(EnableCap.DepthTest);
 
+
             if (DisplayAxis)
+            {
                 axisRender.DrawAxis(view, projection, model);
+                //axisCircularRender.DrawCircle(view, projection, model);
+
+            }
         }
 
         private bool IsPointInFrustum(Vector3 worldPosition, Matrix4 model, Matrix4 view, Matrix4 projection)
