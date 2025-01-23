@@ -15,6 +15,7 @@ using OpenTK.Graphics.GL;
 using System.Drawing;
 using System.Xml.Linq;
 using CsvHelper.Configuration;
+using static System.Windows.Forms.LinkLabel;
 
 namespace HipparcosCatalog
 {
@@ -23,11 +24,16 @@ namespace HipparcosCatalog
         private float _time; // Время, используемое для анимации
         public List<Star> AllStars { get; set; } = new List<Star>();
         public List<Star> VisibleStars { get; set; } = new List<Star>();
+        List<Line> lines = new List<Line>();
+
         private int _vao;
         private int _vbo;
         private Shader _shader;
+        private Shader _lineShader;
         private float[] _vertices;
 
+        private int _lineVao, _lineVbo;
+        private float[] _lineVertices;
         public Constellations Constellations { get; private set; } = new Constellations();
 
         float _pointSize = 1.0f;
@@ -54,18 +60,18 @@ namespace HipparcosCatalog
         /// <summary>
         /// Дистанция от Солнца на которой видны звезды
         /// </summary>
-        public float VisibleRadius { get; set; } = 30660100;
+        public float VisibleRadius { get; set; } = 10;
 
         /// <summary>
         /// Дистанция от камеры на которой видны подписи
         /// </summary>
         public float DistanceCameraLablesVisible { get; set; } = 10;
 
+        public bool DisplayStarLines { get; set; } = false;
         public Catalog()
         {
             axisRender = new AxisRender();
             axisCircularRender = new AxisCircularRender();
-            axisCircularRender.GenerateCirclesAndLinesAndPlane(40, 3, new Vector3(0,0,0), 100, "XZ");
             InitializeShaderStars();            
         }
 
@@ -118,8 +124,8 @@ namespace HipparcosCatalog
 
                     AllStars.Add(star);
 
-                    if (star.ProperName == "Aldebaran" || star.ProperName == "Proxima Centauri")
-                        axisRender.Axis.Add(new Axis(5.0f, 0.0f, 0.0f, star.Pos));
+                    //if (star.ProperName == "Aldebaran" || star.ProperName == "Proxima Centauri")
+                    //    axisRender.Axis.Add(new Axis(5.0f, 0.0f, 0.0f, star.Pos));
                 }
             }
 
@@ -132,6 +138,8 @@ namespace HipparcosCatalog
         public List<Star> PrepareVertices()
         {
             VisibleStars.Clear();
+            lines.Clear();
+            List<float> lineVertices = new List<float>();
             var starWithName = new List<Star>();
 
             var vertices = new List<float>();
@@ -152,6 +160,60 @@ namespace HipparcosCatalog
 
                     double absMag = star.AbsMag ?? 0;
                     vertices.Add((float)absMag);
+
+                    
+                    if (DisplayStarLines)
+                    {
+                        #region Рендеринг линий от звезды до плоскости проекции
+
+                        if (!string.IsNullOrEmpty(star.ProperName))
+                        {
+                            Line line1 = new Line()
+                            {
+                                Start = star.Pos,
+                                End = new Vector3(star.Pos.X, 0, star.Pos.Z), // Плоскость XZ (Y = 0)
+                                Color = star.Pos.Y > 0 ? Color.FromArgb(143, 154, 255) : Color.FromArgb(255, 95, 91)// Определим цвет линии
+                            };
+                            Line line2 = new Line()
+                            {
+                                Start = line1.End,
+                                End = new Vector3(0, 0, 0), // Плоскость XZ (Y = 0)
+                                Color = line1.Color// Определим цвет линии
+                            };
+
+                            // Добавим данные для линии: координаты и цвет
+                            lineVertices.Add(line1.Start.X);
+                            lineVertices.Add(line1.Start.Y);
+                            lineVertices.Add(line1.Start.Z);  // Начало
+                            lineVertices.Add(line1.Color.R / 255f);
+                            lineVertices.Add(line1.Color.G / 255f);
+                            lineVertices.Add(line1.Color.B / 255f); // Цвет
+
+                            lineVertices.Add(line1.End.X);
+                            lineVertices.Add(line1.End.Y);
+                            lineVertices.Add(line1.End.Z);  // Конец
+                            lineVertices.Add(line1.Color.R / 255f);
+                            lineVertices.Add(line1.Color.G / 255f);
+                            lineVertices.Add(line1.Color.B / 255f); // Цвет
+
+
+                            // Добавим данные для линии: координаты и цвет
+                            lineVertices.Add(line2.Start.X);
+                            lineVertices.Add(line2.Start.Y);
+                            lineVertices.Add(line2.Start.Z);  // Начало
+                            lineVertices.Add(line2.Color.R / 255f);
+                            lineVertices.Add(line2.Color.G / 255f);
+                            lineVertices.Add(line2.Color.B / 255f); // Цвет
+
+                            lineVertices.Add(line2.End.X);
+                            lineVertices.Add(line2.End.Y);
+                            lineVertices.Add(line2.End.Z);  // Конец
+                            lineVertices.Add(line2.Color.R / 255f);
+                            lineVertices.Add(line2.Color.G / 255f);
+                            lineVertices.Add(line2.Color.B / 255f); // Цвет
+                        }
+                        #endregion
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(star.ProperName))
@@ -171,7 +233,11 @@ namespace HipparcosCatalog
             if (!Constellations.IsComplete)
                 Constellations.OrderByStars();
 
+            _lineVertices = lineVertices.ToArray();
             _vertices = vertices.ToArray();
+
+            axisCircularRender.GenerateCirclesAndLinesAndPlane(VisibleRadius, 1, new Vector3(0, 0, 0), 100, "XZ");
+
             return starWithName;
         }
 
@@ -196,6 +262,20 @@ namespace HipparcosCatalog
             GL.EnableVertexAttribArray(2);
 
             Constellations.InitializeBuffersConstellations();
+
+            // Создаём VAO и VBO для линий
+            _lineVao = GL.GenVertexArray();
+            _lineVbo = GL.GenBuffer();
+            GL.BindVertexArray(_lineVao);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _lineVbo);
+            GL.BufferData(BufferTarget.ArrayBuffer, _lineVertices.Length * sizeof(float), _lineVertices, BufferUsageHint.StaticDraw);
+
+            // Указываем атрибуты: позиция и цвет
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);  // Позиция
+            GL.EnableVertexAttribArray(0);
+
+            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));  // Цвет
+            GL.EnableVertexAttribArray(1);
         }
 
         private void InitializeShaderStars()
@@ -248,6 +328,37 @@ namespace HipparcosCatalog
             }";
 
             _shader = new Shader(vertexShaderSource, fragmentShaderSource, null, ShaderSourceMode.Code);
+
+
+            // Вершинный шейдер
+            string vertexLineShaderSource = @"
+            #version 330 core
+            layout(location = 0) in vec3 aPosition;
+            layout(location = 1) in vec3 aColorRGB;
+
+            uniform mat4 model;
+            uniform mat4 view;
+            uniform mat4 projection;
+            out vec3 vColor;
+
+            void main()
+            {
+                gl_Position = projection * view * model * vec4(aPosition, 1.0);
+                vColor = aColorRGB;
+            }";
+
+            // Фрагментный Lineшейдер
+            string fragmentLineShaderSource = @"
+            #version 330 core
+            in vec3 vColor;
+            out vec4 FragColor;
+
+            void main()
+            {
+                FragColor = vec4(vColor, 1.0);
+            }";
+
+             _lineShader = new Shader(vertexLineShaderSource, fragmentLineShaderSource, null, ShaderSourceMode.Code);
         }
 
         public void Draw(Matrix4 view, Matrix4 projection, Matrix4 model, Vector3 cameraPosition, TextRenderer textRenderer)
@@ -378,7 +489,6 @@ namespace HipparcosCatalog
             if (DisplayAxis)
             {
                 axisCircularRender.DrawCircle(view, projection, model);
-
             }
 
 
@@ -387,11 +497,21 @@ namespace HipparcosCatalog
             GL.Enable(EnableCap.DepthTest);
 
 
+            // Рендер линий (если они включены)
+            if (DisplayStarLines)
+            {
+                _lineShader.Use();
+                _lineShader.SetMatrix4("view", view);
+                _lineShader.SetMatrix4("projection", projection);
+                _lineShader.SetMatrix4("model", model);
+
+                GL.BindVertexArray(_lineVao);
+                GL.DrawArrays(PrimitiveType.Lines, 0, _lineVertices.Length / 6); // 6 — количество данных для каждой вершины (позиция + цвет)
+            }
+
             if (DisplayAxis)
             {
                 axisRender.DrawAxis(view, projection, model);
-                //axisCircularRender.DrawCircle(view, projection, model);
-
             }
         }
 

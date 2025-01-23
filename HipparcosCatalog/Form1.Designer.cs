@@ -124,7 +124,7 @@ namespace HipparcosCatalog
             numericUpDown1.Name = "numericUpDown1";
             numericUpDown1.Size = new Size(239, 27);
             numericUpDown1.TabIndex = 10;
-            numericUpDown1.Value = new decimal(new int[] { 100000000, 0, 0, 0 });
+            numericUpDown1.Value = new decimal(new int[] { 10, 0, 0, 0 });
             numericUpDown1.ValueChanged += numericUpDown1_ValueChanged;
             // 
             // label4

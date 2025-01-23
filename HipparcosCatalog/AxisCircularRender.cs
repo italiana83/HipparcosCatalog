@@ -124,6 +124,8 @@ namespace HipparcosCatalog
 
         public void GenerateCirclesAndLinesAndPlane(float step, int circleCount, Vector3 center, int segments, string plane = "XY")
         {
+            //step = step * 0.306601f;
+
             circleVertices.Clear();
             planeVertices.Clear();
 
