@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35514.174
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HipparcosCatalog", "HipparcosCatalog\HipparcosCatalog.csproj", "{7B4245E2-5BE4-46FF-9860-B3B81DE163DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HipparcosStarProcessor", "HipparcosStarProcessor\HipparcosStarProcessor.csproj", "{AC4267CC-E8AA-48C5-99DD-27C11264C160}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoiseGenerator", "NoiseGenerator\NoiseGenerator.csproj", "{35F9447C-1116-47DD-ACDA-C1264A7CA3CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GaiaToHipparcosConverter", "GaiaToHipparcosConverter\GaiaToHipparcosConverter.csproj", "{6FC380E8-6807-4CCC-ABC8-CA12CAB12147}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B4245E2-5BE4-46FF-9860-B3B81DE163DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B4245E2-5BE4-46FF-9860-B3B81DE163DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B4245E2-5BE4-46FF-9860-B3B81DE163DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B4245E2-5BE4-46FF-9860-B3B81DE163DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC4267CC-E8AA-48C5-99DD-27C11264C160}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC4267CC-E8AA-48C5-99DD-27C11264C160}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC4267CC-E8AA-48C5-99DD-27C11264C160}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC4267CC-E8AA-48C5-99DD-27C11264C160}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35F9447C-1116-47DD-ACDA-C1264A7CA3CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35F9447C-1116-47DD-ACDA-C1264A7CA3CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35F9447C-1116-47DD-ACDA-C1264A7CA3CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35F9447C-1116-47DD-ACDA-C1264A7CA3CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FC380E8-6807-4CCC-ABC8-CA12CAB12147}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FC380E8-6807-4CCC-ABC8-CA12CAB12147}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FC380E8-6807-4CCC-ABC8-CA12CAB12147}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FC380E8-6807-4CCC-ABC8-CA12CAB12147}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EEA6D351-1562-4EF8-81E1-909687F904BA}
+	EndGlobalSection
+EndGlobal
