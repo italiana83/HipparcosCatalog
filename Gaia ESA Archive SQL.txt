@@ -1,0 +1,287 @@
+SELECT 
+  HIP, HD, HR, Gliese, Bayer, Flamsteed,
+  ra, dec, dist, x, y, z, Vmag, spect
+FROM "V/137A/hyg"
+WHERE 1=CONTAINS(
+  POINT('ICRS', ra, dec),
+  CIRCLE('ICRS', 56.75, 24.12, 2)
+)
+
+https://gea.esac.esa.int/archive/
+ 	
+	
+Выборка для скопления в созвездии Тельца M45 (Плеяды)
+
+SELECT 
+    g.source_id,
+    h.HIP,
+    h.HD,
+    -- Координаты, пересчитанные на эпоху Hipparcos (J1991.25)
+    g.ra - (g.pmra / 3600 / COS(RADIANS(g.dec))) AS ra_hip_epoch,
+    g.dec - (g.pmdec / 3600) AS dec_hip_epoch,
+    g.parallax,
+    1000/g.parallax AS distance_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) AS X_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) AS Y_pc,
+    (1000/g.parallax) * SIN(RADIANS(g.dec)) AS Z_pc,   
+    g.phot_g_mean_mag + 5*LOG10(g.parallax/1000) + 5 AS AbsMag,
+    g.pmra,
+    g.pmdec,
+    g.phot_g_mean_mag,
+	g.teff_gspphot,
+	g.bp_rp,
+	ap.spectraltype_esphs,
+	ap.radius_gspphot,
+	ap.radius_flame
+FROM 
+    gaiadr3.gaia_source AS g
+LEFT JOIN 
+    gaiadr3.hipparcos2_best_neighbour AS hpn ON g.source_id = hpn.source_id
+LEFT JOIN 
+    public.hipparcos AS h ON hpn.original_ext_source_id = h.HIP
+JOIN 
+    gaiadr3.astrophysical_parameters AS ap ON g.source_id = ap.source_id	
+WHERE 
+    1=CONTAINS(
+        POINT('ICRS', g.ra, g.dec),
+        CIRCLE('ICRS', 56.75, 24.1167, 2)
+    )
+    AND g.parallax > 5
+    AND g.parallax_over_error > 10
+    AND g.pmra BETWEEN 15 AND 25
+    AND g.pmdec BETWEEN -50 AND -40
+ORDER BY 
+    g.phot_g_mean_mag ASC
+	
+
+
+
+
+Выборка для скопления в созвездии Геркулеса M13
+SELECT 
+    g.source_id,
+    h.HIP,
+    h.HD,
+    -- Координаты, пересчитанные на эпоху Hipparcos (J1991.25)
+    g.ra - (g.pmra / 3600 / COS(RADIANS(g.dec))) AS ra_hip_epoch,
+    g.dec - (g.pmdec / 3600) AS dec_hip_epoch,
+    g.parallax,
+    1000/g.parallax AS distance_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) AS X_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) AS Y_pc,
+    (1000/g.parallax) * SIN(RADIANS(g.dec)) AS Z_pc,   
+    g.phot_g_mean_mag + 5*LOG10(g.parallax/1000) + 5 AS AbsMag,
+    g.pmra,
+    g.pmdec,
+    g.phot_g_mean_mag,
+	g.teff_gspphot,
+	g.bp_rp,
+	ap.spectraltype_esphs,
+	ap.radius_gspphot,
+	ap.radius_flame
+FROM 
+    gaiadr3.gaia_source AS g
+LEFT JOIN 
+    gaiadr3.hipparcos2_best_neighbour AS hpn ON g.source_id = hpn.source_id
+LEFT JOIN 
+    public.hipparcos AS h ON hpn.original_ext_source_id = h.HIP
+JOIN 
+    gaiadr3.astrophysical_parameters AS ap ON g.source_id = ap.source_id
+WHERE 
+	1 = CONTAINS(
+		POINT('ICRS', g.ra, g.dec),
+		-- Центр M13: RA=250.421°, DEC=36.461°, радиус 0.3°
+		CIRCLE('ICRS', 250.421, 36.461, 0.3)
+	)
+	AND g.parallax > 0.0
+	AND g.parallax < 0.5		-- M13 далеко (~7.1 kpc)
+	AND g.pmra BETWEEN -4.15 AND -2.15
+	AND g.pmdec BETWEEN -3.56 AND -1.56
+ORDER BY g.phot_g_mean_mag ASC	
+
+
+
+Выборка для скопления в созвездии Тельца (Гиады)
+SELECT 
+    g.source_id,
+    h.HIP,
+    h.HD,
+    -- Координаты, пересчитанные на эпоху Hipparcos (J1991.25)
+    g.ra - (g.pmra / 3600 / COS(RADIANS(g.dec))) AS ra_hip_epoch,
+    g.dec - (g.pmdec / 3600) AS dec_hip_epoch,
+    g.parallax,
+    1000/g.parallax AS distance_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) AS X_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) AS Y_pc,
+    (1000/g.parallax) * SIN(RADIANS(g.dec)) AS Z_pc,   
+    g.phot_g_mean_mag + 5*LOG10(g.parallax/1000) + 5 AS AbsMag,
+    g.pmra,
+    g.pmdec,
+    g.phot_g_mean_mag,
+    g.teff_gspphot,
+    g.bp_rp,
+    ap.spectraltype_esphs,
+    ap.radius_gspphot,
+    ap.radius_flame
+FROM 
+    gaiadr3.gaia_source AS g
+LEFT JOIN 
+    gaiadr3.hipparcos2_best_neighbour AS hpn 
+    ON g.source_id = hpn.source_id
+LEFT JOIN 
+    public.hipparcos AS h 
+    ON hpn.original_ext_source_id = h.HIP
+JOIN 
+    gaiadr3.astrophysical_parameters AS ap 
+    ON g.source_id = ap.source_id
+WHERE 
+    1=CONTAINS(
+        POINT('ICRS', g.ra, g.dec),
+        CIRCLE('ICRS', 66.75, 15.87, 10)
+    )
+    AND g.parallax BETWEEN 18 AND 24
+    AND g.parallax_over_error > 10
+    AND g.pmra BETWEEN 95 AND 125
+    AND g.pmdec BETWEEN -35 AND -15
+	AND SQRT(
+		 POWER( (1000.0/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) - 18.197934625148996, 2 ) +
+		 POWER( (1000.0/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) - 41.25751155997754, 2 ) +
+		 POWER( (1000.0/g.parallax) * SIN(RADIANS(g.dec)) - 13.12186125916048, 2 )
+  ) <= 4.5
+ORDER BY 
+    g.phot_g_mean_mag ASC;
+
+
+
+Запрос для h Persei (NGC 869)
+
+SELECT 
+    g.source_id,
+    h.HIP,
+    h.HD,
+    g.ra - (g.pmra / 3600 / COS(RADIANS(g.dec))) AS ra_hip_epoch,
+    g.dec - (g.pmdec / 3600) AS dec_hip_epoch,
+    g.parallax,
+    1000/g.parallax AS distance_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) AS X_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) AS Y_pc,
+    (1000/g.parallax) * SIN(RADIANS(g.dec)) AS Z_pc,   
+    g.phot_g_mean_mag + 5*LOG10(g.parallax/1000) + 5 AS AbsMag,
+    g.pmra,
+    g.pmdec,
+    g.phot_g_mean_mag,
+    g.teff_gspphot,
+    g.bp_rp,
+    ap.spectraltype_esphs,
+    ap.radius_gspphot,
+    ap.radius_flame
+FROM 
+    gaiadr3.gaia_source AS g
+LEFT JOIN 
+    gaiadr3.hipparcos2_best_neighbour AS hpn 
+        ON g.source_id = hpn.source_id
+LEFT JOIN 
+    public.hipparcos AS h 
+        ON hpn.original_ext_source_id = h.HIP
+JOIN 
+    gaiadr3.astrophysical_parameters AS ap 
+        ON g.source_id = ap.source_id	
+WHERE 
+    1=CONTAINS(
+        POINT('ICRS', g.ra, g.dec),
+        CIRCLE('ICRS', 34.842, 57.147, 0.3)
+    )
+    AND g.parallax BETWEEN 0.3 AND 0.6
+    AND g.parallax_over_error > 5
+    AND g.pmra BETWEEN -2.5 AND 1.5
+    AND g.pmdec BETWEEN -3.5 AND 0.5
+ORDER BY 
+    g.phot_g_mean_mag ASC
+	
+	
+Запрос для χ Persei (NGC 884)
+
+SELECT 
+    g.source_id,
+    h.HIP,
+    h.HD,
+    g.ra - (g.pmra / 3600 / COS(RADIANS(g.dec))) AS ra_hip_epoch,
+    g.dec - (g.pmdec / 3600) AS dec_hip_epoch,
+    g.parallax,
+    1000/g.parallax AS distance_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) AS X_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) AS Y_pc,
+    (1000/g.parallax) * SIN(RADIANS(g.dec)) AS Z_pc,   
+    g.phot_g_mean_mag + 5*LOG10(g.parallax/1000) + 5 AS AbsMag,
+    g.pmra,
+    g.pmdec,
+    g.phot_g_mean_mag,
+    g.teff_gspphot,
+    g.bp_rp,
+    ap.spectraltype_esphs,
+    ap.radius_gspphot,
+    ap.radius_flame
+FROM 
+    gaiadr3.gaia_source AS g
+LEFT JOIN 
+    gaiadr3.hipparcos2_best_neighbour AS hpn 
+        ON g.source_id = hpn.source_id
+LEFT JOIN 
+    public.hipparcos AS h 
+        ON hpn.original_ext_source_id = h.HIP
+JOIN 
+    gaiadr3.astrophysical_parameters AS ap 
+        ON g.source_id = ap.source_id	
+WHERE 
+    1=CONTAINS(
+        POINT('ICRS', g.ra, g.dec),
+        CIRCLE('ICRS', 35.775, 57.135, 0.3)
+    )
+    AND g.parallax BETWEEN 0.3 AND 0.6
+    AND g.parallax_over_error > 5
+    AND g.pmra BETWEEN -2.5 AND 1.5
+    AND g.pmdec BETWEEN -3.5 AND 0.5
+ORDER BY 
+    g.phot_g_mean_mag ASC	
+	
+	
+NGC 6530 (в Лагуне)
+SELECT 
+    g.source_id,
+    h.HIP,
+    h.HD,
+    g.ra - (g.pmra / 3600 / COS(RADIANS(g.dec))) AS ra_hip_epoch,
+    g.dec - (g.pmdec / 3600) AS dec_hip_epoch,
+    g.parallax,
+    1000/g.parallax AS distance_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * COS(RADIANS(g.ra)) AS X_pc,
+    (1000/g.parallax) * COS(RADIANS(g.dec)) * SIN(RADIANS(g.ra)) AS Y_pc,
+    (1000/g.parallax) * SIN(RADIANS(g.dec)) AS Z_pc,   
+    g.phot_g_mean_mag + 5*LOG10(g.parallax/1000) + 5 AS AbsMag,
+    g.pmra,
+    g.pmdec,
+    g.phot_g_mean_mag,
+    g.teff_gspphot,
+    g.bp_rp,
+    ap.spectraltype_esphs,
+    ap.radius_gspphot,
+    ap.radius_flame
+FROM 
+    gaiadr3.gaia_source AS g
+LEFT JOIN 
+    gaiadr3.hipparcos2_best_neighbour AS hpn ON g.source_id = hpn.source_id
+LEFT JOIN 
+    public.hipparcos AS h ON hpn.original_ext_source_id = h.HIP
+JOIN 
+    gaiadr3.astrophysical_parameters AS ap ON g.source_id = ap.source_id	
+WHERE 
+    1 = CONTAINS( POINT('ICRS', g.ra, g.dec), CIRCLE('ICRS', 271.075, -24.375, 0.35) )
+    AND g.parallax IS NOT NULL
+    AND g.parallax BETWEEN 0.9 AND 1.25
+    AND g.parallax_over_error >= 5
+    AND g.pmra BETWEEN -3.0 AND 3.0
+    AND g.pmdec BETWEEN -7.0 AND 1.0
+ORDER BY g.phot_g_mean_mag ASC;
+	
+	
+	
